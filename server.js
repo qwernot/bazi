@@ -240,6 +240,27 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // 5.5 API: 宋韶光 2026 丙午马年十二生肖运程
+  if (pathname === "/api/zodiac/2026" && method === "GET") {
+    try {
+      const zFile = path.join(DATA_DIR, "song_shaoguang_2026.json");
+      const zData = JSON.parse(fs.readFileSync(zFile, "utf-8"));
+      const zodiacQuery = parsedUrl.query.zodiac;
+      if (zodiacQuery && zData.zodiacs[zodiacQuery]) {
+        return sendJson(res, 200, {
+          year: zData.year,
+          ganzhi: zData.ganzhi,
+          title: zData.title,
+          overview: zData.overview,
+          zodiac: zData.zodiacs[zodiacQuery]
+        });
+      }
+      return sendJson(res, 200, zData);
+    } catch (err) {
+      return sendJson(res, 500, { error: "读取宋韶光马年运程失败" });
+    }
+  }
+
   // 6. API: 商业化卡密验证与兑换
   if (pathname === "/api/vip/verify" && method === "POST") {
     try {

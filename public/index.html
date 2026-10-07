@@ -25,6 +25,7 @@
     <nav class="nav-tabs">
       <button class="tab-btn active" data-tab="bazi">🔮 八字精算</button>
       <button class="tab-btn" data-tab="iching">🪙 周易金钱卦</button>
+      <button class="tab-btn" data-tab="zodiac2026">🐎 2026马年运程</button>
       <button class="tab-btn" data-tab="library">📜 国学藏经阁</button>
     </nav>
 
@@ -307,6 +308,18 @@
               <div id="report-future-years"></div>
             </div>
 
+            <!-- 2026 马年宋韶光大师专属生肖运程 -->
+            <div class="glass-card" id="report-song-zodiac-card" style="border: 1px solid rgba(245, 158, 11, 0.4); background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%);">
+              <div class="card-header" style="border-bottom: 1px solid rgba(245, 158, 11, 0.25);">
+                <div>
+                  <h3 class="card-title" style="color: #fef08a;">🐎 2026 丙午马年 · 宋韶光大师专属生肖运程详批</h3>
+                  <p style="font-size: 12px; color: var(--text-sub); margin-top: 2px;">依据缘主出生年支生肖【<span id="report-song-user-zodiac" style="color: #fef08a; font-weight: bold;">-</span>】，匹配香港易学泰斗宋韶光大师丙午火马年权威秘断</p>
+                </div>
+                <span id="report-song-zodiac-badge" class="ancient-badge" style="background: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.4); color: #fef08a;">-</span>
+              </div>
+              <div id="report-song-zodiac-content" style="font-size: 13px; line-height: 1.8; color: #cbd5e1; margin-top: 10px;"></div>
+            </div>
+
             <!-- 导出 PDF / 长图 -->
             <div style="text-align: center; margin-top: 20px;">
               <button class="btn-primary" onclick="exportReportPdf()">📥 打印或导出 PDF 命盘报告</button>
@@ -361,6 +374,46 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <!-- ==================== TAB 2.5: 2026马年宋韶光生肖运程 ==================== -->
+    <section class="tab-pane" id="pane-zodiac2026" style="display: none;">
+      <!-- 总论概览 -->
+      <div class="glass-card" style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1px solid rgba(245, 158, 11, 0.35); margin-bottom: 20px;">
+        <div class="card-header" style="flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h2 class="card-title" style="font-size: 20px; color: #fef08a;">🐎 2026 丙午马年十二生肖通胜运程 · 宋韶光大师专版</h2>
+            <p style="font-size: 12px; color: var(--text-sub); margin-top: 4px;">岁次丙午 · 天河水纳音 · 九宫飞星一白贪狼入中宫 · 香港易学宗师宋韶光权威推演</p>
+          </div>
+          <span class="ancient-badge" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">🔥 赤马之年</span>
+        </div>
+        <p id="zodiac2026-overview-summary" style="font-size: 13px; color: #cbd5e1; line-height: 1.8; font-family: 'Songti SC', serif; margin-bottom: 14px;">
+          2026年岁次丙午，天干属火，地支属火，纳音为天河水，民间称为火马年或赤马年。丙火炽烈，午火鼎盛，火势交融，天地气场热烈激荡。宋韶光大师指出，丙午之年宜积极进取而不宜盲动浮躁，宜修德养气、顺应天道。流年九宫飞星一白贪狼入中宫，太岁坐正南（午方），岁破在正北（子方），凡营谋布局须辨明方位吉凶，合太岁者乘风破浪，犯太岁者深谋远虑、谨防冲激。
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; font-size: 12px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px;">
+          <div><strong style="color: #f87171;">⚠️ 太岁当坐：</strong><span id="zodiac2026-taisui-dir" style="color: #fca5a5;">正南（午方，忌动土，宜安奉太岁符）</span></div>
+          <div><strong style="color: #fb923c;">⚡ 岁破方位：</strong><span id="zodiac2026-suipo-dir" style="color: #fdba74;">正北（子方，岁破方，忌动土喧哗）</span></div>
+          <div><strong style="color: #facc15;">💰 八白财星：</strong><span id="zodiac2026-wealth-dir" style="color: #fef08a;">正东（左辅财星临门，宜明亮聚财）</span></div>
+          <div><strong style="color: #38bdf8;">📚 四绿文昌：</strong><span id="zodiac2026-wenchang-dir" style="color: #bae6fd;">东南（四绿文曲进气，大利学业功名）</span></div>
+        </div>
+      </div>
+
+      <!-- 生肖快速查找与选择器 -->
+      <div class="glass-card" style="margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;">
+          <h3 class="card-title" style="font-size: 16px;">🎋 选择生肖查看 2026 宋韶光流年运程</h3>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="number" id="input-zodiac-year-query" class="form-control" placeholder="输入出生年份 (如1990)" style="width: 170px; font-size: 13px; padding: 6px 12px;" min="1900" max="2100">
+            <button class="btn-secondary" onclick="lookupZodiacByYear()" style="padding: 6px 14px; font-size: 13px;">🔍 查找我的生肖</button>
+          </div>
+        </div>
+
+        <!-- 12 生肖选择按钮网格 -->
+        <div class="zodiac-picker-grid" id="zodiac-picker-grid"></div>
+      </div>
+
+      <!-- 选中生肖的运程详情卡片 -->
+      <div id="zodiac-detail-container"></div>
     </section>
 
     <!-- ==================== TAB 3: 国学藏经阁 ==================== -->

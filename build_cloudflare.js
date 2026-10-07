@@ -17,6 +17,7 @@ const booksLibrary = JSON.parse(fs.readFileSync(path.join(DATA_DIR, "books_libra
 const licenseKeys = JSON.parse(fs.readFileSync(path.join(DATA_DIR, "license_keys.json"), "utf-8"));
 const chinaCitiesData = JSON.parse(fs.readFileSync(path.join(DATA_DIR, "china_cities.json"), "utf-8"));
 const appConfigData = JSON.parse(fs.readFileSync(path.join(DATA_DIR, "app_config.json"), "utf-8"));
+const songShaoguangData = JSON.parse(fs.readFileSync(path.join(DATA_DIR, "song_shaoguang_2026.json"), "utf-8"));
 
 // 提取核心算法代码
 const calendarCode = fs.readFileSync(path.join(__dirname, "lib/calendar.js"), "utf-8")
@@ -35,6 +36,7 @@ const analyzerCode = fs.readFileSync(path.join(__dirname, "lib/analyzer.js"), "u
   .replace(/const path = require\("path"\);/, "")
   .replace(/const qiongTongData = [\s\S]*?;/, "")
   .replace(/const sanMingData = [\s\S]*?;/, "")
+  .replace(/const songShaoguangData = [\s\S]*?;/, "")
   .replace(/module\.exports\s*=\s*\{[\s\S]*?\};/, "");
 
 const workerTemplate = `/**
@@ -50,6 +52,7 @@ const booksLibrary = ${JSON.stringify(booksLibrary)};
 let localLicenseKeys = ${JSON.stringify(licenseKeys)};
 const chinaCitiesData = ${JSON.stringify(chinaCitiesData)};
 let localAppConfig = ${JSON.stringify(appConfigData)};
+const songShaoguangData = ${JSON.stringify(songShaoguangData)};
 
 ${calendarCode}
 ${baziCode}
@@ -193,6 +196,21 @@ export default {
     // 5. 古籍藏经阁
     if (pathname === "/api/library" && method === "GET") {
       return jsonResponse(booksLibrary);
+    }
+
+    // 5.5 宋韶光 2026 丙午马年十二生肖运程
+    if (pathname === "/api/zodiac/2026" && method === "GET") {
+      const zodiacQuery = url.searchParams.get("zodiac");
+      if (zodiacQuery && songShaoguangData.zodiacs && songShaoguangData.zodiacs[zodiacQuery]) {
+        return jsonResponse({
+          year: songShaoguangData.year,
+          ganzhi: songShaoguangData.ganzhi,
+          title: songShaoguangData.title,
+          overview: songShaoguangData.overview,
+          zodiac: songShaoguangData.zodiacs[zodiacQuery]
+        });
+      }
+      return jsonResponse(songShaoguangData);
     }
 
     // 6. VIP 卡密验证与核销 (支持 Cloudflare KV 持久化)

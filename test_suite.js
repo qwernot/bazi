@@ -71,8 +71,23 @@ async function runTests() {
   assert.ok(keyData.keys["LINGJING-2026-VIP"], "应存在预置VIP卡密");
   console.log(" VIP 授权卡密库：测试全部通过！");
 
+  console.log("\n=== 6. 测试宋韶光 2026 丙午马年十二生肖运程与八字联动 ===");
+  const songData = JSON.parse(fs.readFileSync("./data/song_shaoguang_2026.json", "utf-8"));
+  assert.strictEqual(songData.year, 2026, "年份应为2026");
+  assert.strictEqual(songData.zodiacYear, "马", "生肖年应为马");
+  assert.ok(Object.keys(songData.zodiacs).length === 12, "必须包含全部十二生肖运程");
+  assert.ok(songData.zodiacs["马"].relationship.includes("值太岁"), "属马应为值太岁");
+  assert.ok(songData.zodiacs["鼠"].relationship.includes("冲太岁"), "属鼠应为冲太岁");
+  assert.ok(songData.zodiacs["羊"].relationship.includes("六合太岁"), "属羊应为六合太岁");
+  assert.ok(report.songShaoguang2026, "报告中应挂载缘主专属宋韶光2026生肖运程");
+  assert.strictEqual(report.songShaoguang2026.userZodiac, "猪", "1995乙亥年年支亥对应生肖应为猪");
+  assert.ok(report.songShaoguang2026.fortune.relationship.includes("暗合有情"), "属猪在马年应为暗合有情");
+  console.log(" 缘主生肖推演:", report.songShaoguang2026.userZodiac, "太岁关系:", report.songShaoguang2026.fortune.relationship);
+  console.log(" 大师锦囊妙计:", report.songShaoguang2026.fortune.masterAdvice.talisman);
+  console.log(" 宋韶光 2026 丙午马年运程及八字报告联动：测试全部通过！");
+
   console.log("\n==========================================");
-  console.log("  恭喜！全部 5 大核心功能模块自测试验 100% 成功！");
+  console.log("  恭喜！全部 6 大核心功能模块自测试验 100% 成功！");
   console.log("==========================================");
 }
 

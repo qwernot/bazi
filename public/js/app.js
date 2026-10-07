@@ -242,6 +242,9 @@ function initTabs() {
       if (target === "library") {
         window.initLibrary?.();
       }
+      if (target === "zodiac2026") {
+        initZodiac2026();
+      }
     });
   });
 }
@@ -451,6 +454,74 @@ function renderBaZiResult(chart, report) {
     yearsBox.appendChild(yDiv);
   });
 
+  // 渲染宋韶光 2026 马年专属生肖详批
+  const songCard = document.getElementById("report-song-zodiac-card");
+  if (songCard && report.songShaoguang2026 && report.songShaoguang2026.fortune) {
+    const sz = report.songShaoguang2026;
+    const f = sz.fortune;
+    const zUserEl = document.getElementById("report-song-user-zodiac");
+    if (zUserEl) zUserEl.innerText = `${sz.userZodiac}（${sz.yearZhi}）`;
+    const badge = document.getElementById("report-song-zodiac-badge");
+    if (badge) {
+      badge.innerText = f.relationship;
+      if (f.relationshipLevel === "danger" || f.relationshipLevel === "warning") {
+        badge.style.background = "rgba(239, 68, 68, 0.25)";
+        badge.style.borderColor = "rgba(239, 68, 68, 0.5)";
+        badge.style.color = "#fca5a5";
+      } else if (f.relationshipLevel === "best" || f.relationshipLevel === "good") {
+        badge.style.background = "rgba(16, 185, 129, 0.25)";
+        badge.style.borderColor = "rgba(16, 185, 129, 0.5)";
+        badge.style.color = "#6ee7b7";
+      } else {
+        badge.style.background = "rgba(245, 158, 11, 0.25)";
+        badge.style.borderColor = "rgba(245, 158, 11, 0.5)";
+        badge.style.color = "#fef08a";
+      }
+    }
+
+    const contentBox = document.getElementById("report-song-zodiac-content");
+    if (contentBox) {
+      contentBox.innerHTML = `
+        <div style="background: rgba(0,0,0,0.3); border-left: 3px solid #f59e0b; padding: 10px 14px; margin-bottom: 12px; font-style: italic; color: #fef08a;">
+          📜 <strong>宋大师流年诗诀：</strong>${f.poem}
+        </div>
+        <p style="margin-bottom: 10px; line-height: 1.7;">${f.summary}</p>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; font-size: 12px;">
+          <span style="color: #6ee7b7; background: rgba(16, 185, 129, 0.15); padding: 2px 8px; border-radius: 4px;">🌟 吉星：${f.stars.auspicious.join("、") || "无显曜"}</span>
+          <span style="color: #fca5a5; background: rgba(239, 68, 68, 0.15); padding: 2px 8px; border-radius: 4px;">⚠️ 凶星：${f.stars.inauspicious.join("、") || "无大凶"}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px;">
+          <div style="background: rgba(0,0,0,0.25); padding: 10px; border-radius: 8px;">
+            <strong style="color: #38bdf8;">💼 事业展业：</strong>
+            <p style="font-size: 12px; color: #cbd5e1; margin-top: 4px;">${f.career}</p>
+          </div>
+          <div style="background: rgba(0,0,0,0.25); padding: 10px; border-radius: 8px;">
+            <strong style="color: #facc15;">💰 财运求索：</strong>
+            <p style="font-size: 12px; color: #cbd5e1; margin-top: 4px;">${f.wealth}</p>
+          </div>
+          <div style="background: rgba(0,0,0,0.25); padding: 10px; border-radius: 8px;">
+            <strong style="color: #f472b6;">❤️ 婚恋情感：</strong>
+            <p style="font-size: 12px; color: #cbd5e1; margin-top: 4px;">${f.love}</p>
+          </div>
+          <div style="background: rgba(0,0,0,0.25); padding: 10px; border-radius: 8px;">
+            <strong style="color: #4ade80;">🌿 平安健康：</strong>
+            <p style="font-size: 12px; color: #cbd5e1; margin-top: 4px;">${f.health}</p>
+          </div>
+        </div>
+        <div class="song-advice-box">
+          <h4 style="color: #fef08a; font-size: 14px; margin-bottom: 8px;">🔮 宋韶光大师 2026 马年专属开运锦囊</h4>
+          <p style="font-size: 12px; color: #e2e8f0; margin-bottom: 6px;"><strong>【开运吉祥物】：</strong>${f.masterAdvice.talisman}</p>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: #cbd5e1;">
+            <span>🎨 幸运色：${f.masterAdvice.luckyColors.join("、")}</span>
+            <span>🔢 幸运数字：${f.masterAdvice.luckyNumbers.join("、")}</span>
+            <span>🧭 旺运吉方：${f.masterAdvice.luckyDirections.join("、")}</span>
+          </div>
+          <p style="font-size: 12px; color: #fca5a5; margin-top: 6px;"><strong>【避忌提要】：</strong>${f.masterAdvice.taboo}</p>
+        </div>
+      `;
+    }
+  }
+
   // 检查 VIP 遮罩状态
   updateVipUi();
 }
@@ -550,3 +621,241 @@ function exportReportPdf() {
 
 window.exportReportPdf = exportReportPdf;
 window.loadSampleCase = loadSampleCase;
+
+// ==================== 2026 丙午马年宋韶光专版流年运程模块 ====================
+let zodiac2026Data = null;
+let currentSelectedZodiac = "马";
+
+const ZODIAC_META_LIST = [
+  { name: "鼠", branch: "子", icon: "🐀" },
+  { name: "牛", branch: "丑", icon: "🐂" },
+  { name: "虎", branch: "寅", icon: "🐅" },
+  { name: "兔", branch: "卯", icon: "🐇" },
+  { name: "龙", branch: "辰", icon: "🐉" },
+  { name: "蛇", branch: "巳", icon: "🐍" },
+  { name: "马", branch: "午", icon: "🐎" },
+  { name: "羊", branch: "未", icon: "🐑" },
+  { name: "猴", branch: "申", icon: "🐒" },
+  { name: "鸡", branch: "酉", icon: "🐓" },
+  { name: "狗", branch: "戌", icon: "🐕" },
+  { name: "猪", branch: "亥", icon: "🐖" }
+];
+
+async function initZodiac2026() {
+  if (!zodiac2026Data) {
+    try {
+      const res = await fetch("/api/zodiac/2026");
+      zodiac2026Data = await res.json();
+    } catch (err) {
+      console.error("加载 2026 宋韶光生肖运程失败", err);
+      return;
+    }
+  }
+
+  // 更新总览信息
+  if (zodiac2026Data.overview) {
+    const oSummary = document.getElementById("zodiac2026-overview-summary");
+    if (oSummary) oSummary.innerText = zodiac2026Data.overview.summary;
+    const tips = zodiac2026Data.overview.fengshuiTips;
+    if (tips) {
+      const tsEl = document.getElementById("zodiac2026-taisui-dir");
+      if (tsEl) tsEl.innerText = tips.taiSuiDirection;
+      const spEl = document.getElementById("zodiac2026-suipo-dir");
+      if (spEl) spEl.innerText = tips.suiPoDirection;
+      const wEl = document.getElementById("zodiac2026-wealth-dir");
+      if (wEl) wEl.innerText = tips.wealthDirection;
+      const wcEl = document.getElementById("zodiac2026-wenchang-dir");
+      if (wcEl) wcEl.innerText = tips.wenChangDirection;
+    }
+  }
+
+  renderZodiacPickerGrid();
+  selectZodiac(currentSelectedZodiac);
+}
+
+function renderZodiacPickerGrid() {
+  const grid = document.getElementById("zodiac-picker-grid");
+  if (!grid || !zodiac2026Data) return;
+  grid.innerHTML = "";
+
+  ZODIAC_META_LIST.forEach(item => {
+    const zInfo = zodiac2026Data.zodiacs?.[item.name];
+    const relTag = zInfo ? zInfo.relationship.split("（")[0] : "";
+    const levelClass = zInfo?.relationshipLevel ? `z-tag-${zInfo.relationshipLevel}` : "z-tag-neutral";
+
+    const btn = document.createElement("div");
+    btn.className = `zodiac-btn ${item.name === currentSelectedZodiac ? "active" : ""}`;
+    btn.dataset.zodiac = item.name;
+    btn.onclick = () => selectZodiac(item.name);
+
+    btn.innerHTML = `
+      <div class="z-icon">${item.icon}</div>
+      <div class="z-name">${item.name}</div>
+      <div class="z-branch">(${item.branch})</div>
+      <div class="z-tag ${levelClass}">${relTag}</div>
+    `;
+
+    grid.appendChild(btn);
+  });
+}
+
+function selectZodiac(zodiacName) {
+  currentSelectedZodiac = zodiacName;
+
+  // 更新网格高亮
+  const allBtns = document.querySelectorAll(".zodiac-btn");
+  allBtns.forEach(b => {
+    if (b.dataset.zodiac === zodiacName) {
+      b.classList.add("active");
+    } else {
+      b.classList.remove("active");
+    }
+  });
+
+  // 渲染详情
+  renderZodiacDetail(zodiacName);
+}
+
+function renderZodiacDetail(zodiacName) {
+  const container = document.getElementById("zodiac-detail-container");
+  if (!container || !zodiac2026Data) return;
+
+  const z = zodiac2026Data.zodiacs?.[zodiacName];
+  if (!z) return;
+
+  const meta = ZODIAC_META_LIST.find(m => m.name === zodiacName) || { icon: "🎋", branch: "" };
+
+  let badgeColorStyle = "background: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.4); color: #fef08a;";
+  if (z.relationshipLevel === "danger" || z.relationshipLevel === "warning") {
+    badgeColorStyle = "background: rgba(239, 68, 68, 0.25); border-color: rgba(239, 68, 68, 0.5); color: #fca5a5;";
+  } else if (z.relationshipLevel === "best" || z.relationshipLevel === "good") {
+    badgeColorStyle = "background: rgba(16, 185, 129, 0.25); border-color: rgba(16, 185, 129, 0.5); color: #6ee7b7;";
+  }
+
+  container.innerHTML = `
+    <div class="glass-card" style="border: 1px solid rgba(245, 158, 11, 0.4); background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%);">
+      <div class="card-header" style="flex-wrap: wrap; gap: 10px; border-bottom: 1px solid rgba(245, 158, 11, 0.25); padding-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 38px;">${meta.icon}</span>
+          <div>
+            <h3 style="font-size: 20px; color: #fef08a; display: flex; align-items: center; gap: 10px;">
+              生肖属${z.name} · 2026 丙午马年流年总运
+              <span class="ancient-badge" style="margin-bottom: 0; font-size: 13px; ${badgeColorStyle}">${z.relationship}</span>
+            </h3>
+            <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">地支：${z.earthlyBranch} · 纳音流年：天河水 · 评定宗师：宋韶光</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 14px;">
+        <!-- 大师诗诀 -->
+        <div style="background: rgba(0,0,0,0.35); border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 4px 8px 8px 4px; margin-bottom: 16px;">
+          <div style="color: #fef08a; font-size: 13px; font-weight: bold; margin-bottom: 4px;">📜 宋韶光大师马年七言断诀：</div>
+          <p style="font-size: 15px; color: #fde047; font-family: 'Songti SC', serif; letter-spacing: 1px;">“${z.poem}”</p>
+        </div>
+
+        <!-- 运势通评 -->
+        <div style="margin-bottom: 16px;">
+          <h4 style="font-size: 14px; color: #e2e8f0; margin-bottom: 6px;">【流年运势总断】</h4>
+          <p style="font-size: 13px; color: #cbd5e1; line-height: 1.8;">${z.summary}</p>
+        </div>
+
+        <!-- 吉凶神煞 -->
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; font-size: 13px;">
+          <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); padding: 6px 12px; border-radius: 6px;">
+            <strong style="color: #6ee7b7;">🌟 吉星照耀：</strong>
+            <span style="color: #a7f3d0;">${z.stars.auspicious.join("、") || "暂无显星"}</span>
+          </div>
+          <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); padding: 6px 12px; border-radius: 6px;">
+            <strong style="color: #fca5a5;">⚠️ 凶星入照：</strong>
+            <span style="color: #fecaca;">${z.stars.inauspicious.join("、") || "平稳无大厄"}</span>
+          </div>
+        </div>
+
+        <!-- 四大运势分栏 -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 16px;">
+          <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); padding: 14px; border-radius: 10px;">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+              <span style="font-size: 18px;">💼</span>
+              <strong style="color: #38bdf8; font-size: 14px;">事业与官贵</strong>
+            </div>
+            <p style="font-size: 13px; color: #cbd5e1; line-height: 1.7;">${z.career}</p>
+          </div>
+
+          <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); padding: 14px; border-radius: 10px;">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+              <span style="font-size: 18px;">💰</span>
+              <strong style="color: #facc15; font-size: 14px;">财帛与投资</strong>
+            </div>
+            <p style="font-size: 13px; color: #cbd5e1; line-height: 1.7;">${z.wealth}</p>
+          </div>
+
+          <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); padding: 14px; border-radius: 10px;">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+              <span style="font-size: 18px;">❤️</span>
+              <strong style="color: #f472b6; font-size: 14px;">婚恋与人际</strong>
+            </div>
+            <p style="font-size: 13px; color: #cbd5e1; line-height: 1.7;">${z.love}</p>
+          </div>
+
+          <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); padding: 14px; border-radius: 10px;">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+              <span style="font-size: 18px;">🌿</span>
+              <strong style="color: #4ade80; font-size: 14px;">平安与养生</strong>
+            </div>
+            <p style="font-size: 13px; color: #cbd5e1; line-height: 1.7;">${z.health}</p>
+          </div>
+        </div>
+
+        <!-- 宋韶光大师独家开运锦囊 -->
+        <div class="song-advice-box">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+            <span style="font-size: 20px;">🔮</span>
+            <h4 style="color: #fef08a; font-size: 15px; margin: 0;">宋韶光大师 2026 丙午马年专属开运锦囊妙计</h4>
+          </div>
+          <div style="font-size: 13px; line-height: 1.8; color: #e2e8f0;">
+            <p style="margin-bottom: 8px;">
+              <strong style="color: #fef08a;">【开运吉祥物】：</strong>${z.masterAdvice.talisman}
+            </p>
+            <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; font-size: 13px;">
+              <span><strong>🎨 幸运颜色：</strong><span style="color: #fef08a;">${z.masterAdvice.luckyColors.join("、")}</span></span>
+              <span><strong>🔢 幸运数字：</strong><span style="color: #38bdf8;">${z.masterAdvice.luckyNumbers.join("、")}</span></span>
+              <span><strong>🧭 旺运吉方：</strong><span style="color: #4ade80;">${z.masterAdvice.luckyDirections.join("、")}</span></span>
+            </div>
+            <p style="margin-bottom: 0; color: #fca5a5;">
+              <strong>【趋吉避凶与禁忌】：</strong>${z.masterAdvice.taboo}
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `;
+}
+
+// 通过出生年份快速查询生肖并展示
+function lookupZodiacByYear() {
+  const input = document.getElementById("input-zodiac-year-query");
+  const year = parseInt(input.value);
+  if (!year || isNaN(year) || year < 1900 || year > 2100) {
+    alert("请输入有效的出生年份 (1900-2100)");
+    return;
+  }
+
+  // (year - 4) % 12
+  let idx = (year - 4) % 12;
+  if (idx < 0) idx += 12;
+  const targetZodiac = ZODIAC_META_LIST[idx]?.name || "马";
+
+  selectZodiac(targetZodiac);
+
+  // 平滑滚动至详情区
+  const container = document.getElementById("zodiac-detail-container");
+  if (container) {
+    container.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+window.lookupZodiacByYear = lookupZodiacByYear;
+window.initZodiac2026 = initZodiac2026;
+
